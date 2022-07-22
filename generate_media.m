@@ -18,7 +18,7 @@ pos = [2,4.5,6,4.5];
 %2 - 1 dose model comparison with asymptotics and data
 %3 - 1 and 2 dose model comparison with data
 %4 - optimization graphs
-experiment = 3;
+experiment = 2;
 
 switch(experiment)
     case -1
@@ -99,6 +99,9 @@ switch(experiment)
             end
         end
     case 1
+        
+        logflag = 1;
+        
         DATA = load(strcat(pwd,'\Runs\','modeldat-paramset-m1-time-1500-doses-1'));
         params = DATA.params;
         flags = DATA.flags;
@@ -126,13 +129,17 @@ switch(experiment)
         Fs = DATA.ys(:,7);
         Is = DATA.ys(:,8);
         
-        t1 = params.delta;
+        t1 = 1E-6;%params.delta;
         t2 = 1;
         t3 = params.epsilon^(-1/3);
         t4 = 1/params.epsilon;
         t5 = -2/params.epsilon/params.alphai*log(params.epsilon);
         
-        pnames={'Lass';'Vass';'Tass';'Bass';'Aass';'Cass';'Fass';'Iass'};
+        if logflag
+            pnames={'Lasslog';'Vasslog';'Tasslog';'Basslog';'Aasslog';'Casslog';'Fasslog';'Iasslog'};
+        else
+            pnames={'Lass';'Vass';'Tass';'Bass';'Aass';'Cass';'Fass';'Iass'};
+        end
         
         sf = 1.1;
         
@@ -174,105 +181,212 @@ switch(experiment)
         ya5(:,8) = asdat.Itil;
         
         plabs = {'$L$';'$V$';'$T$';'$B$';'$A$';'$C$';'$F$';'$I$'};
-        legplots = {[1,5,6];[1,5,6];[1,5,6];[1,5,6,7,8];[1,5,6,7,8];[1,5,6];[1,5,6];[1,5,6,7,8,9]};
-        legentries = {{'Numeric (full)','Numeric (reduced)','Analytic'},{'Numeric (full)','Numeric (reduced)','Analytic'},{'Numeric (full)','Numeric (reduced)','Analytic'},{'Numeric (full)','Numeric (reduced)','$t_2$','$t_3$','$t_4$'},{'Numeric (full)','Numeric (reduced)','$t_2$','$t_3$','$t_4$'},{'Numeric (full)','Numeric (reduced)','Analytic'},{'Numeric (full)','Numeric (reduced)','Analytic'},{'Numeric (full)','Numeric (reduced)','$t_2$','$t_3$','$t_4$','$t_5$'}};
+        legplots = {[1,5,6];[1,5,6];[1,5,6];[1,5,6,7,8];[1,5,6,7,8];[1,5,6];[1,5,6,10];[1,5,6,7,8,9]};
+        legentries = {{'Numeric (full)','Numeric (reduced)','Analytic'},{'Numeric (full)','Numeric (reduced)','Analytic'},{'Numeric (full)','Numeric (reduced)','Analytic'},{'Numeric (full)','Numeric (reduced)','$t_2$','$t_3$','$t_4$'},{'Numeric (full)','Numeric (reduced)','$t_2$','$t_3$','$t_4$'},{'Numeric (full)','Numeric (reduced)','Analytic'},{'Numeric (full)','Numeric (reduced)','Analytic','$t_1$'},{'Numeric (full)','Numeric (reduced)','$t_2$','$t_3$','$t_4$','$t_5$'}};
         
-        x_limit = [t3,1.5*t4,1.5*t4,1.5*t4,2.5*t4,1.5*t4,1.5*t4,0.5*t4];
+        x_limit = [t3,1.5*t4,1.5*t4,1.5*t4,2.5*t4,1.5*t4,1.5*t4,1.5*t4];
         
         fignum = 0;
         for k=1:length(pnames)
             p = 0;
             fignum = fignum + 1;
             [fig(k),figprop(k)]=new_figure(pnames{k},pos);
-            p(1)=plot(t,y(:,k),'Color',pcols{6},'linewidth',2);
+            if logflag
+                p(1)=semilogx(t,y(:,k),'Color',pcols{6},'linewidth',2);
+            else
+                p(1)=plot(t,y(:,k),'Color',pcols{6},'linewidth',2);
+            end
             UB = max(y(:,k))*sf;
             hold on
             p(2)=patch([t1,t2,t2,t1],[UB,UB,0,0],bcol);
             p(3)=patch([t3,t4,t4,t3],[UB,UB,0,0],bcol);
             p(4)=patch([t5,ts(end),ts(end),t5],[UB,UB,0,0],bcol);
             
-            p(1)=plot(t,y(:,k),'Color',pcols{6},'linewidth',2);
-
-            p(5)=plot(ts,ys(:,k),'Color',pcols{1},'linewidth',2);
+            if logflag
+                p(1)=semilogx(t,y(:,k),'Color',pcols{6},'linewidth',2);
+            else
+                p(1)=plot(t,y(:,k),'Color',pcols{6},'linewidth',2);
+            end
+            
+            if logflag
+                p(5)=semilogx(ts,ys(:,k),'Color',pcols{1},'linewidth',2);
+            else
+                p(5)=plot(ts,ys(:,k),'Color',pcols{1},'linewidth',2);
+            end
             
             if ismember(6,legplots{k})
-                p(6)=plot(ts,ya2(:,k),'LineStyle','--','Color',pcols{2},'linewidth',2);
+                if logflag
+                    p(6)=semilogx(ts,ya2(:,k),'LineStyle','--','Color',pcols{2},'linewidth',2);
+                else
+                    p(6)=plot(ts,ya2(:,k),'LineStyle','--','Color',pcols{2},'linewidth',2);
+                end
             end
             if ismember(7,legplots{k})
-                p(7)=plot(ts,ya3(:,k),'LineStyle','--','Color',pcols{3},'linewidth',2);
+                if logflag
+                    p(7)=semilogx(ts,ya3(:,k),'LineStyle','--','Color',pcols{3},'linewidth',2);
+                else
+                    p(7)=plot(ts,ya3(:,k),'LineStyle','--','Color',pcols{3},'linewidth',2);
+                end
             end
             if ismember(8,legplots{k})
-                p(8)=plot(ts,ya4(:,k),'LineStyle','--','Color',pcols{4},'linewidth',2);
+                if logflag
+                    p(8)=semilogx(ts,ya4(:,k),'LineStyle','--','Color',pcols{4},'linewidth',2);
+                else
+                    p(8)=plot(ts,ya4(:,k),'LineStyle','--','Color',pcols{4},'linewidth',2);
+                end
             end
             if ismember(9,legplots{k})
-                p(9)=plot(ts,ya5(:,k),'LineStyle','--','Color',pcols{5},'linewidth',2);
+                if logflag
+                    p(9)=semilogx(ts,ya5(:,k),'LineStyle','--','Color',pcols{5},'linewidth',2);
+                else
+                    p(9)=plot(ts,ya5(:,k),'LineStyle','--','Color',pcols{5},'linewidth',2);
+                end
+            end
+            
+            if ismember(10,legplots{k})
+                if logflag
+                    p(10)=semilogx(ts,params.F0*exp(-ts/params.delta),'k--','linewidth',2);
+                else
+                    p(10)=plot(ts,params.F0*exp(-ts/params.delta),'k--','linewidth',2);
+                end
             end
 
             hold off
-            xlim([0,x_limit(k)])
+            if k==1 
+                text(0.015,0.5,texlabel('t_1'),'FontSize',16);
+                text(1.5,0.5,texlabel('t_2'),'FontSize',16);
+                text(20,0.5,texlabel('t_3'),'FontSize',16);
+                text(288,0.5,texlabel('t_4'),'FontSize',16);
+                text(950,0.5,texlabel('t_5'),'FontSize',16);
+            elseif k==4
+                text(0.015,700,texlabel('t_1'),'FontSize',16);
+                text(1.5,700,texlabel('t_2'),'FontSize',16);
+                text(20,700,texlabel('t_3'),'FontSize',16);
+                text(288,700,texlabel('t_4'),'FontSize',16);
+                text(950,700,texlabel('t_5'),'FontSize',16);
+            end
+            if logflag
+                xlim([1E-3,1.5E3])
+            else
+                xlim([0,x_limit(k)])
+            end
             ylim([0,UB])
             figprop(k).xlab=xlabel('$t$');
             figprop(k).ylab=ylabel(plabs{k});
             figprop(k).leg = legend(p(legplots{k}),legentries{k},'location','best');
+            figprop(k).ax = gca;
         end
         
         fignum = fignum + 1;
-        [fig(fignum),figprop(fignum)]=new_figure('Iassout',pos);
+        if logflag
+            [fig(fignum),figprop(fignum)]=new_figure('Iassoutlog',pos);
+        else
+            [fig(fignum),figprop(fignum)]=new_figure('Iassout',pos);
+        end
         p = 0;
-        p(1)=plot(t,y(:,8),'Color',pcols{6},'linewidth',2);
+        if logflag
+            p(1)=semilogx(t,y(:,8),'Color',pcols{6},'linewidth',2);
+        else
+            p(1)=plot(t,y(:,8),'Color',pcols{6},'linewidth',2);
+        end
         UB = max(y(:,8))*sf;
         hold on
         p(2)=patch([t1,t2,t2,t1],[UB,UB,0,0],bcol);
         p(3)=patch([t3,t4,t4,t3],[UB,UB,0,0],bcol);
         p(4)=patch([t5,ts(end),ts(end),t5],[UB,UB,0,0],bcol);
         
-        p(1)=plot(t,y(:,8),'Color',pcols{6},'linewidth',2);
+        if logflag
+            p(1)=semilogx(t,y(:,8),'Color',pcols{6},'linewidth',2);
+        else
+            p(1)=plot(t,y(:,8),'Color',pcols{6},'linewidth',2);
+        end
 
-        p(5)=plot(ts,ys(:,8),'Color',pcols{1},'linewidth',2);
+        if logflag
+            p(5)=semilogx(ts,ys(:,8),'Color',pcols{1},'linewidth',2);
+        else
+            p(5)=plot(ts,ys(:,8),'Color',pcols{1},'linewidth',2);
+        end
 
-        p(6)=plot(ts,ya2(:,8),'LineStyle','--','Color',pcols{2},'linewidth',2);
-        p(7)=plot(ts,ya3(:,8),'LineStyle','--','Color',pcols{3},'linewidth',2);
-        p(8)=plot(ts,ya4(:,8),'LineStyle','--','Color',pcols{4},'linewidth',2);
-        p(9)=plot(ts,ya5(:,8),'LineStyle','--','Color',pcols{5},'linewidth',2);
+        if logflag
+            p(6)=semilogx(ts,ya2(:,8),'LineStyle','--','Color',pcols{2},'linewidth',2);
+            p(7)=semilogx(ts,ya3(:,8),'LineStyle','--','Color',pcols{3},'linewidth',2);
+            p(8)=semilogx(ts,ya4(:,8),'LineStyle','--','Color',pcols{4},'linewidth',2);
+            p(9)=semilogx(ts,ya5(:,8),'LineStyle','--','Color',pcols{5},'linewidth',2);
+        else
+            p(6)=plot(ts,ya2(:,8),'LineStyle','--','Color',pcols{2},'linewidth',2);
+            p(7)=plot(ts,ya3(:,8),'LineStyle','--','Color',pcols{3},'linewidth',2);
+            p(8)=plot(ts,ya4(:,8),'LineStyle','--','Color',pcols{4},'linewidth',2);
+            p(9)=plot(ts,ya5(:,8),'LineStyle','--','Color',pcols{5},'linewidth',2);
+        end
 
         hold off
+        xlim([1E-1,1.5E3]);
         ylim([0,UB])
         figprop(fignum).xlab=xlabel('$t$');
         figprop(fignum).ylab=ylabel(plabs{8});
         figprop(fignum).leg = legend(p(legplots{8}),legentries{8},'location','best');
+        figprop(fignum).ax = gca;
         
         fignum = fignum + 1;
-        [fig(fignum),figprop(fignum)]=new_figure('Aassin',pos);
+        if logflag
+            [fig(fignum),figprop(fignum)]=new_figure('Aassinlog',pos);
+        else
+            [fig(fignum),figprop(fignum)]=new_figure('Aassin',pos);
+        end
         p = 0;
-        p(1)=plot(t,y(:,5),'Color',pcols{6},'linewidth',2);
+        if logflag
+            p(1)=semilogx(t,y(:,5),'Color',pcols{6},'linewidth',2);
+        else
+            p(1)=plot(t,y(:,5),'Color',pcols{6},'linewidth',2);
+        end
         UB = max(y(:,5))*sf;
         hold on
         p(2)=patch([t1,t2,t2,t1],[UB,UB,0,0],bcol);
         p(3)=patch([t3,t4,t4,t3],[UB,UB,0,0],bcol);
         p(4)=patch([t5,ts(end),ts(end),t5],[UB,UB,0,0],bcol);
         
-        p(1)=plot(t,y(:,5),'Color',pcols{6},'linewidth',2);
+        if logflag
+            p(1)=semilogx(t,y(:,5),'Color',pcols{6},'linewidth',2);
+        else
+            p(1)=plot(t,y(:,5),'Color',pcols{6},'linewidth',2);
+        end
 
-        p(5)=plot(ts,ys(:,5),'Color',pcols{1},'linewidth',2);
-
-        p(6)=plot(ts,ya2(:,5),'LineStyle','--','Color',pcols{2},'linewidth',2);
-        p(7)=plot(ts,ya3(:,5),'LineStyle','--','Color',pcols{3},'linewidth',2);
-        p(8)=plot(ts,ya4(:,5),'LineStyle','--','Color',pcols{4},'linewidth',2);
+        if logflag
+            p(5)=semilogx(ts,ys(:,5),'Color',pcols{1},'linewidth',2);
+        else
+            p(5)=plot(ts,ys(:,5),'Color',pcols{1},'linewidth',2);
+        end
+        
+        if logflag
+            p(6)=semilogx(ts,ya2(:,5),'LineStyle','--','Color',pcols{2},'linewidth',2);
+            p(7)=semilogx(ts,ya3(:,5),'LineStyle','--','Color',pcols{3},'linewidth',2);
+            p(8)=semilogx(ts,ya4(:,5),'LineStyle','--','Color',pcols{4},'linewidth',2);
+        else
+            p(6)=plot(ts,ya2(:,5),'LineStyle','--','Color',pcols{2},'linewidth',2);
+            p(7)=plot(ts,ya3(:,5),'LineStyle','--','Color',pcols{3},'linewidth',2);
+            p(8)=plot(ts,ya4(:,5),'LineStyle','--','Color',pcols{4},'linewidth',2);
+        end
 
         hold off
         ylim([0,10])
-        xlim([0,15]);
+        if logflag
+            xlim([1E-3,2E1])
+        else
+            xlim([0,15]);
+        end
         figprop(fignum).xlab=xlabel('$t$');
         figprop(fignum).ylab=ylabel(plabs{5});
         figprop(fignum).leg = legend(p(legplots{5}),legentries{5},'location','best');
+        figprop(fignum).ax = gca;
     case 2
         fignum = 0;
         maxDATA = load('maxtimes.mat');
+        
+        pnames={'A1';'A2';'A3';'A4';'A5';'F6';'F7';'I8';'I9';'I10';'A11';'A12';'A13';'I14';'A15';'A16';'A17';'A18';'A19';'A20'};
+        plotspot = [5;5;5;5;5;7;7;8;8;8;5;5;5;8;5;5;5;5;5;5];
         for k=1:20
             clear ya2 ya3 ya4 ya5
-            pnames={'A1';'A2';'A3';'A4';'A5';'F6';'F7';'I8';'I9';'I10';'A11';'A12';'A13';'I14';'A15';'A16';'A17';'A18';'A19';'A20'};
-            plotspot = [5;5;5;5;5;7;7;8;8;8;5;5;5;8;5;5;5;5;5;5];
-            
+                
             DATA2D = load(strcat(pwd,'\Runs\','modeldat-patientID-',num2str(k),'.mat'));
             DATA = load(strcat(pwd,'\Runs\','modeldat-patientID-',num2str(k),'-1dose.mat'));
             realDATA = load(strcat(pwd,'\data\DATA_ID-',num2str(k),'.mat'));
@@ -415,9 +529,22 @@ switch(experiment)
             hold off
             xlim([0,x_limit(k)])
             ylim([LB,UB])
+            figprop(fignum).ax=gca;
             figprop(fignum).xlab=xlabel('$t$ (days)');
             figprop(fignum).ylab=ylabel(plabs{k});
             figprop(fignum).leg = legend(p(legplots{k}),legentries{k},'location','best');
+            
+            if k==12 
+                text(1,1,texlabel('t_1'),'FontSize',16);
+                text(6,1,texlabel('t_2'),'FontSize',16);
+                text(15,1,texlabel('t_3'),'FontSize',16);
+                text(35,1,texlabel('t_4'),'FontSize',16);
+                text(75,1,texlabel('t_5'),'FontSize',16);
+            elseif k==10
+                text(1,4.5,texlabel('t_1'),'FontSize',16);
+                text(3.5,4.5,texlabel('t_2'),'FontSize',16);
+                text(12,4.5,texlabel('t_3'),'FontSize',16);
+            end
         end
         
     case 3
@@ -517,6 +644,7 @@ switch(experiment)
             figprop(fignum).xlab=xlabel('$t$ (days)');
             figprop(fignum).ylab=ylabel(plabs{k});
             figprop(fignum).leg = legend(p(legplots{k}),legentries{k},'location','best');
+            figprop(fignum).ax = gca;
         end
     case 4
         DATA = load(strcat(pwd,'\Runs\','doseopt-paramset-100-ID-3-time-365.mat'));
